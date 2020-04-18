@@ -17,6 +17,61 @@ namespace SharePoint_App_2
             InitializeComponent();
         }
 
+
+        private void frm_Site_Load(object sender, EventArgs e)
+        {
+            lbl_Site_Name.Text = "";
+
+            EnableToolStripItems(this.tos_Tree, false);
+            EnableToolStripItems(this.tos_Grid, false);
+
+            this.Height = 800;
+            this.Width = 1000;
+            this.WindowState = FormWindowState.Maximized;
+
+            spc_Site.SplitterDistance = 300;
+        }
+
+        private void tvw_Site_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                tvw_Site.SelectedNode = e.Node;
+            }
+        }
+
+        private void tvw_Site_AfterSelect(object sender, TreeViewEventArgs e)
+        {
+            lbl_Site_Name.Text = tvw_Site.SelectedNode.Text;
+            this.Text = tvw_Site.SelectedNode.Tag.ToString();
+        }
+
+        private void tcmd_Collapse_All_Click(object sender, EventArgs e)
+        {
+            // Loop through first level nodes and collapse
+            foreach (TreeNode n in tvw_Site.Nodes[0].Nodes)
+            {
+                n.Collapse();
+            }
+
+            // Bring focus to control to show selected node
+            tvw_Site.Select();
+        }
+
+        private void tcmd_Expand_All_Click(object sender, EventArgs e)
+        {
+            // Expand all nodes
+            tvw_Site.ExpandAll();
+
+            // Bring focus to control to show selected node
+            tvw_Site.Select();
+        }
+
+        private void tcmd_View_Lists_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(tcmd_View_Lists.Text);
+        }
+
         private void tcmd_Credentials_Click(object sender, EventArgs e)
         {
             ShowCredentialsForm();
@@ -30,7 +85,7 @@ namespace SharePoint_App_2
         private void tcmd_Connect_Click(object sender, EventArgs e)
         {
             // Check user has entered credentials
-            if(url == null || username == null || password == null)
+            if (url == null || username == null || password == null)
             {
                 // Tell user to enter credentials
                 MessageBox.Show("Please enter credentials");
@@ -39,35 +94,26 @@ namespace SharePoint_App_2
                 ShowCredentialsForm();
             }
 
-            // Change button text
-            tcmd_Connect.Text = "Connecting...";
-
             // Try to get the client
             clientContext = GetClient();
 
             // Exit if we got an error
-            if (clientContext == null){return;}
+            if (clientContext == null) { return; }
+
+            // Change button text
+            tcmd_Connect.Enabled = false;
+            tcmd_Connect.Text = "Connected";
 
             // Add nodes to the treeview control
             AddNodes();
 
-            // Change connect button
-            tcmd_Connect.Enabled = false;
-            tcmd_Connect.Text = "Connected";
+            // Enable ToolStrip controls for TreeView
+            EnableToolStripItems(this.tos_Tree, true);
+        }
 
-            // Enable expand/collapse buttons
-            cmd_Collapse_All.Enabled = true;
-            cmd_Expand_All.Enabled = true;
-
-            // Enable the Open URL button
-            tcmd_Open_URL.Enabled = true;
-
-            // Refresh the tool strip menu
-            tos_Menu.Refresh();
-
-            // Assign the context menu strip
-            tvw_Site.ContextMenuStrip = cms_Site;
-            tvw_Site.Select();
+        private void tcmd_Open_URL_Click(object sender, EventArgs e)
+        {
+            OpenUrl();
         }
 
         private void AddNodes()
@@ -99,7 +145,9 @@ namespace SharePoint_App_2
 
             // Update the progress bar
             tprg_Site.Value++;
-            tos_Menu.Refresh();
+
+            // Select the treeview control
+            tvw_Site.Select();
 
             // Refresh the treeview for visual effect
             tvw_Site.Refresh();
@@ -109,9 +157,6 @@ namespace SharePoint_App_2
 
             // Update the progress bar
             tprg_Site.Value = 0;
-
-            // Ensure a node is selected
-            tvw_Site.SelectedNode = node;
         }
 
         private void AddSubNodes(Web web, TreeNode node)
@@ -137,7 +182,6 @@ namespace SharePoint_App_2
                     {
                         // Update the progress bar
                         tprg_Site.Value++;
-                        tos_Menu.Refresh();
 
                         // Expand the top level node if required
                         if (node.IsExpanded == false)
@@ -147,7 +191,7 @@ namespace SharePoint_App_2
 
                         // Refresh the treeview control
                         tvw_Site.Refresh();
-                    }                    
+                    }
 
                     // Call procedure recursively
                     AddSubNodes(subWeb, n);
@@ -183,33 +227,7 @@ namespace SharePoint_App_2
             return clientContext;
         }
 
-        private void cmd_Collapse_All_Click(object sender, EventArgs e)
-        {
-            // Loop through first level nodes and collapse
-            foreach (TreeNode n in tvw_Site.Nodes[0].Nodes)
-            {
-                n.Collapse();
-            }
-
-            // Bring focus to control to show selected node
-            tvw_Site.Select();
-        }
-
-        private void cmd_Expand_All_Click(object sender, EventArgs e)
-        {
-            // Expand all nodes
-            tvw_Site.ExpandAll();
-
-            // Bring focus to control to show selected node
-            tvw_Site.Select();
-        }
-
-        private void tcmd_Open_URL_Click(object sender, EventArgs e)
-        {
-            OprnUrl();
-        }
-
-        private void OprnUrl()
+        private void OpenUrl()
         {
             // Check we have entries
             if (tvw_Site.Nodes.Count == 0)
@@ -234,26 +252,14 @@ namespace SharePoint_App_2
             }
         }
 
-        private void frm_Site_Load(object sender, EventArgs e)
+        public void EnableToolStripItems(ToolStrip ts, bool enabled)
         {
-            this.Height = 800;
-            this.Width = 1000;
-            this.WindowState = FormWindowState.Maximized;
-
-            spc_Site.SplitterDistance = 300;
-        }
-
-        private void tvw_Site_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
+            // Loop through all items in the ToolStrip control
+            foreach (ToolStripItem tsi in ts.Items)
             {
-                tvw_Site.SelectedNode = e.Node;
+                // Enable or disable control
+                tsi.Enabled = enabled;
             }
-        }
-
-        private void tmi_Open_URL_Click(object sender, EventArgs e)
-        {
-            OprnUrl();
         }
     }
 }
