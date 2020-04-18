@@ -59,6 +59,7 @@ namespace SharePoint_App_2
             siteForm.tcmd_Open_URL.Enabled = false;
 
             siteForm.tvw_Site.Nodes.Clear();
+            siteForm.tvw_Site.ContextMenuStrip = null;
 
             this.Close();
         }

@@ -40,7 +40,7 @@ namespace SharePoint_App_2
             }
 
             // Change button text
-            //tcmd_Connect.Text = "Connecting...";
+            tcmd_Connect.Text = "Connecting...";
 
             // Try to get the client
             clientContext = GetClient();
@@ -48,6 +48,7 @@ namespace SharePoint_App_2
             // Exit if we got an error
             if (clientContext == null){return;}
 
+            // Add nodes to the treeview control
             AddNodes();
 
             // Change connect button
@@ -61,7 +62,12 @@ namespace SharePoint_App_2
             // Enable the Open URL button
             tcmd_Open_URL.Enabled = true;
 
+            // Refresh the tool strip menu
             tos_Menu.Refresh();
+
+            // Assign the context menu strip
+            tvw_Site.ContextMenuStrip = cms_Site;
+            tvw_Site.Select();
         }
 
         private void AddNodes()
@@ -103,6 +109,9 @@ namespace SharePoint_App_2
 
             // Update the progress bar
             tprg_Site.Value = 0;
+
+            // Ensure a node is selected
+            tvw_Site.SelectedNode = node;
         }
 
         private void AddSubNodes(Web web, TreeNode node)
@@ -148,57 +157,71 @@ namespace SharePoint_App_2
 
         private void ShowCredentialsForm()
         {
+            // Create new form
             frm_Credentials credForm = new frm_Credentials(this);
+
+            // Show as dialog
             credForm.ShowDialog();
         }
 
         private ClientContext GetClient()
         {
+            // Store error message
             string errorMessage = "";
 
             // Get client
             ClientContext clientContext = cls_SharePoint.GetClient(url, username, password, ref errorMessage);
 
+            // If an error occured, the object will be NULL
             if (clientContext == null)
             {
+                // Show user the message
                 MessageBox.Show(errorMessage);
-                return null;
             }
 
+            // Return the object
             return clientContext;
         }
 
         private void cmd_Collapse_All_Click(object sender, EventArgs e)
         {
+            // Loop through first level nodes and collapse
             foreach (TreeNode n in tvw_Site.Nodes[0].Nodes)
             {
                 n.Collapse();
             }
+
+            // Bring focus to control to show selected node
             tvw_Site.Select();
         }
 
         private void cmd_Expand_All_Click(object sender, EventArgs e)
         {
+            // Expand all nodes
             tvw_Site.ExpandAll();
-            tvw_Site.Select();
-        }
 
-        private void tvw_Site_AfterSelect(object sender, TreeViewEventArgs e)
-        {
-            //MessageBox.Show(tvw_Site.SelectedNode.Tag.ToString());
+            // Bring focus to control to show selected node
+            tvw_Site.Select();
         }
 
         private void tcmd_Open_URL_Click(object sender, EventArgs e)
         {
-            if(tvw_Site.Nodes.Count == 0)
+            OprnUrl();
+        }
+
+        private void OprnUrl()
+        {
+            // Check we have entries
+            if (tvw_Site.Nodes.Count == 0)
             {
                 tcmd_Open_URL.Enabled = false;
                 return;
             }
-            
+
+            // Store the selected node
             TreeNode node = tvw_Site.SelectedNode;
 
-            if(node != null)
+            if (node != null)
             {
                 string url = tvw_Site.SelectedNode.Tag.ToString();
 
@@ -209,6 +232,28 @@ namespace SharePoint_App_2
                 MessageBox.Show("Please select a site");
                 tvw_Site.Select();
             }
+        }
+
+        private void frm_Site_Load(object sender, EventArgs e)
+        {
+            this.Height = 800;
+            this.Width = 1000;
+            this.WindowState = FormWindowState.Maximized;
+
+            spc_Site.SplitterDistance = 300;
+        }
+
+        private void tvw_Site_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right)
+            {
+                tvw_Site.SelectedNode = e.Node;
+            }
+        }
+
+        private void tmi_Open_URL_Click(object sender, EventArgs e)
+        {
+            OprnUrl();
         }
     }
 }
