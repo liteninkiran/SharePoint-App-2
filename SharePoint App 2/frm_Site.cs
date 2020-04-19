@@ -20,30 +20,23 @@ namespace SharePoint_App_2
 
         private void frm_Site_Load(object sender, EventArgs e)
         {
-            lbl_Site_Name.Text = "";
-
-            EnableToolStripItems(this.tos_Tree, false);
-            EnableToolStripItems(this.tos_Grid, false);
-
-            this.Height = 800;
-            this.Width = 1000;
-            this.WindowState = FormWindowState.Maximized;
-
-            spc_Site.SplitterDistance = 300;
+            ResetControls();
+            InitialiseForm();
         }
 
         private void tvw_Site_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+            // Check if we are right-clicking
             if (e.Button == MouseButtons.Right)
             {
+                // Select the entry that was right-clicked on
                 tvw_Site.SelectedNode = e.Node;
             }
         }
 
         private void tvw_Site_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            lbl_Site_Name.Text = tvw_Site.SelectedNode.Text;
-            this.Text = tvw_Site.SelectedNode.Tag.ToString();
+            UpdateLabels(false);
         }
 
         private void tcmd_Collapse_All_Click(object sender, EventArgs e)
@@ -232,22 +225,31 @@ namespace SharePoint_App_2
             // Check we have entries
             if (tvw_Site.Nodes.Count == 0)
             {
+                // Disable the control
                 tcmd_Open_URL.Enabled = false;
+
+                // Jump out
                 return;
             }
 
             // Store the selected node
             TreeNode node = tvw_Site.SelectedNode;
 
+            // Check we have selected a node
             if (node != null)
             {
+                // Store URL from the node's tag
                 string url = tvw_Site.SelectedNode.Tag.ToString();
 
+                // Open up the browser and navigate to URL
                 System.Diagnostics.Process.Start(url);
             }
             else
             {
+                // Inform the user
                 MessageBox.Show("Please select a site");
+
+                // Select the TreeView control
                 tvw_Site.Select();
             }
         }
@@ -260,6 +262,51 @@ namespace SharePoint_App_2
                 // Enable or disable control
                 tsi.Enabled = enabled;
             }
+        }
+
+        private void InitialiseForm()
+        {
+            // Make form a bit bigger than it is in design view
+            this.Height = 800;
+            this.Width = 1000;
+
+            // Maximise window
+            this.WindowState = FormWindowState.Maximized;
+
+            // Set the vertical splitter distance
+            this.spc_Site.SplitterDistance = 300;
+        }
+
+        public void ResetControls()
+        {
+            UpdateLabels(true);
+
+            // Disable all ToolStrip controls in the Panels
+            EnableToolStripItems(this.tos_Tree, false);
+            EnableToolStripItems(this.tos_Grid, false);
+
+            // Enable the "Connect" button
+            this.tcmd_Connect.Text = "Connect";
+            this.tcmd_Connect.Enabled = true;
+
+            // Clear the treeview control
+            this.tvw_Site.Nodes.Clear();
+
+            // Clear the DataGridView control
+            this.dgv_List.Rows.Clear();
+            this.dgv_List.Columns.Clear();
+        }
+
+        private void UpdateLabels(bool reset)
+        {
+            // Ternary operator
+            // A ? B : C ==> if(A){B}else{C}
+
+            // Update header label
+            lbl_Site_Name.Text = reset ? "" : tvw_Site.SelectedNode.Text;
+
+            // Update form caption
+            this.Text = reset ? "SharePoint Sites" : tvw_Site.SelectedNode.Tag.ToString();
         }
     }
 }

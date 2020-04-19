@@ -51,16 +51,8 @@ namespace SharePoint_App_2
             siteForm.username = this.txt_Username.Text;
             siteForm.password = this.txt_Password.Text;
 
-            // Disable ToolStrip controls
-            siteForm.EnableToolStripItems(siteForm.tos_Grid, false);
-            siteForm.EnableToolStripItems(siteForm.tos_Tree, false);
-
-            // Enable controls
-            siteForm.tcmd_Connect.Text = "Connect";
-            siteForm.tcmd_Connect.Enabled = true;
-
-            // Clear the treeview control
-            siteForm.tvw_Site.Nodes.Clear();
+            // Reset the Site Form
+            siteForm.ResetControls();
 
             this.Close();
         }

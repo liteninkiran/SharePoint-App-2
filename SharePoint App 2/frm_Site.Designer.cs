@@ -326,10 +326,6 @@
 
         #endregion
         private System.Windows.Forms.Button cmd_Close;
-        public System.Windows.Forms.TreeView tvw_Site;
-        public System.Windows.Forms.ToolStrip tos_Menu;
-        public System.Windows.Forms.ToolStripButton tcmd_Credentials;
-        public System.Windows.Forms.ToolStripButton tcmd_Connect;
         private System.Windows.Forms.ToolStripProgressBar tprg_Site;
         private System.Windows.Forms.DataGridView dgv_List;
         private System.Windows.Forms.SplitContainer spc_Site;
@@ -340,9 +336,13 @@
         private System.Windows.Forms.SplitContainer spc_Grid;
         private System.Windows.Forms.ToolStripButton toolStripButton5;
         private System.Windows.Forms.ToolStripButton toolStripButton6;
-        public System.Windows.Forms.ToolStripButton tcmd_Open_URL;
-        public System.Windows.Forms.ToolStrip tos_Tree;
-        public System.Windows.Forms.ToolStrip tos_Grid;
         private System.Windows.Forms.Label lbl_Site_Name;
+        private System.Windows.Forms.TreeView tvw_Site;
+        private System.Windows.Forms.ToolStrip tos_Menu;
+        private System.Windows.Forms.ToolStripButton tcmd_Credentials;
+        private System.Windows.Forms.ToolStripButton tcmd_Connect;
+        private System.Windows.Forms.ToolStripButton tcmd_Open_URL;
+        private System.Windows.Forms.ToolStrip tos_Tree;
+        private System.Windows.Forms.ToolStrip tos_Grid;
     }
 }
