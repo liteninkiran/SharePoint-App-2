@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Windows.Forms;
+using System.Collections.Generic;
 using Microsoft.SharePoint.Client;
+using SP = Microsoft.SharePoint.Client;
 
 namespace SharePoint_App_2
 {
     public partial class frm_Site : System.Windows.Forms.Form
     {
+        // Store the SharePoint connection
         ClientContext clientContext;
+
+        // Stores a list of Sites
+        List<Web> subWebs = new List<Web>();
 
         public string url = null;
         public string username = null;
@@ -17,9 +23,9 @@ namespace SharePoint_App_2
             InitializeComponent();
         }
 
-
         private void frm_Site_Load(object sender, EventArgs e)
         {
+
             ResetControls();
             InitialiseForm();
         }
@@ -62,7 +68,9 @@ namespace SharePoint_App_2
 
         private void tcmd_View_Lists_Click(object sender, EventArgs e)
         {
-            MessageBox.Show(tcmd_View_Lists.Text);
+            //MessageBox.Show(tcmd_View_Lists.Text);
+
+            GetLists();
         }
 
         private void tcmd_Credentials_Click(object sender, EventArgs e)
@@ -132,9 +140,12 @@ namespace SharePoint_App_2
             // Show the progress bar
             tprg_Site.Visible = true;
 
+            // Store Web in collection
+            subWebs.Add(web);
+
             // Add top level node
             TreeNode node = tvw_Site.Nodes.Add(web.Title);
-            node.Tag = web.Url;
+            node.Tag = 0;
 
             // Update the progress bar
             tprg_Site.Value++;
@@ -166,9 +177,12 @@ namespace SharePoint_App_2
                 // Check whether it is an app URL or not - If not then get into this block  
                 if (subWeb.Url.Contains(web.Url))
                 {
+                    // Add item to collection
+                    subWebs.Add(subWeb);
+
                     // Add a node
                     TreeNode n = node.Nodes.Add(subWeb.Title);
-                    n.Tag = subWeb.Url;
+                    n.Tag = subWebs.Count - 1;
 
                     // Expand first level nodes & update progress bar
                     if (n.Level == 1)
@@ -223,7 +237,7 @@ namespace SharePoint_App_2
         private void OpenUrl()
         {
             // Check we have entries
-            if (tvw_Site.Nodes.Count == 0)
+            if (tvw_Site.GetNodeCount(true) == 0)
             {
                 // Disable the control
                 tcmd_Open_URL.Enabled = false;
@@ -239,7 +253,8 @@ namespace SharePoint_App_2
             if (node != null)
             {
                 // Store URL from the node's tag
-                string url = tvw_Site.SelectedNode.Tag.ToString();
+                Web web = GetWeb();
+                string url = web.Url;
 
                 // Open up the browser and navigate to URL
                 System.Diagnostics.Process.Start(url);
@@ -299,14 +314,166 @@ namespace SharePoint_App_2
 
         private void UpdateLabels(bool reset)
         {
-            // Ternary operator
-            // A ? B : C ==> if(A){B}else{C}
-
             // Update header label
             lbl_Site_Name.Text = reset ? "" : tvw_Site.SelectedNode.Text;
 
+            // Get the site
+            Web web = GetWeb();
+
+            // Derive the caption text
+            string caption = reset ? "SharePoint Sites" : (web == null ? "" : web.Url);
+
             // Update form caption
-            this.Text = reset ? "SharePoint Sites" : tvw_Site.SelectedNode.Tag.ToString();
+            this.Text = caption;
+        }
+
+        private Web GetWeb(TreeNode node = null)
+        {
+            // Return NULL if there aren't any nodes on the tree
+            if(tvw_Site.GetNodeCount(true) == 0)
+            {
+                return null;
+            }
+
+            // Check if a node has been supplied
+            if(node == null)
+            {
+                // Use the selected node
+                node = tvw_Site.SelectedNode;
+
+                // Check there is a selcted node
+                if (node == null)
+                {
+                    // Use the base node
+                    node = tvw_Site.Nodes[0];
+
+                    // Ensure it is selected
+                    tvw_Site.SelectedNode = node;
+                }
+            }
+
+            // Store the index from the node's tag
+            int i = (int)node.Tag;
+
+            // Return the web
+            return subWebs[i];
+        }
+
+        private void GetLists()
+        {
+            // Get the site
+            Web web = GetWeb();
+
+            // Retreive lists
+            clientContext.Load(web.Lists);
+            clientContext.ExecuteQuery();
+
+            // Clear the datagridview
+            dgv_List.Rows.Clear();
+            dgv_List.Columns.Clear();
+
+            // Add columns to datagridview
+            AddColumnsList();
+
+            int i = 0;
+
+            // Loop through each list
+            foreach (SP.List oList in web.Lists)
+            {
+                clientContext.Load(oList.DefaultView);
+                clientContext.ExecuteQuery();
+
+                SP.View oView = oList.DefaultView;
+
+                string viewTitle;
+                string viewUrl;
+                string listUrl;
+                string siteUrl = web.Url;
+                string listType = GetBaseTypeDescription(oList.BaseType);
+
+                try
+                {
+                    viewTitle = oView.Title;
+                    viewUrl = oView.ServerRelativeUrl;
+                    listUrl = clientContext.Url + viewUrl;
+                }
+                catch (Exception ex)
+                {
+                    listUrl = "";
+                    viewTitle = "";
+                }
+
+
+                dgv_List.Rows.Add();
+
+                dgv_List[0, i].Value = i;
+                dgv_List[1, i].Value = web.Title;
+                dgv_List[2, i].Value = siteUrl;
+                dgv_List[3, i].Value = oList.Title;
+                dgv_List[4, i].Value = oList.Description;
+                dgv_List[5, i].Value = listType;
+                dgv_List[6, i].Value = viewTitle;
+                dgv_List[7, i].Value = !oList.DisableGridEditing;
+                dgv_List[8, i].Value = 0;
+                dgv_List[9, i].Value = 0;
+                dgv_List[10, i].Value = oList.ItemCount;
+                dgv_List[11, i].Value = oList.Id.ToString();
+                dgv_List[12, i].Value = oList.Created.ToString();
+                dgv_List[13, i].Value = listUrl;
+
+                dgv_List.Refresh();
+
+                i++;
+            }
+           
+        }
+
+        private string GetBaseTypeDescription(SP.BaseType baseType)
+        {
+            string listType = null;
+
+            switch ((int)baseType)
+            {
+                case -1: listType = "None"; break;
+                case 0: listType = "List"; break;
+                case 1: listType = "Document Library"; break;
+                case 2: listType = "Unused"; break;
+                case 3: listType = "Discussion Board"; break;
+                case 4: listType = "Survey"; break;
+                case 5: listType = "Issue"; break;
+            }
+
+            return listType;
+        }
+
+        public void AddColumnsList()
+        {
+            // Create a linked column for URL
+            DataGridViewLinkColumn lnk = new DataGridViewLinkColumn();
+            lnk.HeaderText = "Site URL";
+            lnk.Name = "url";
+            lnk.UseColumnTextForLinkValue = false;
+
+            DataGridViewCheckBoxColumn checkEdit = new DataGridViewCheckBoxColumn();
+            checkEdit.HeaderText = "Quick Edit";
+            checkEdit.Name = "quickEdit";
+
+            DataGridViewColumn col = null;
+
+            col = dgv_List.Columns[dgv_List.Columns.Add("rowNumber", "Number")]; col.ValueType = typeof(int);
+            col = dgv_List.Columns[dgv_List.Columns.Add("siteName", "Site Name")];
+            col = dgv_List.Columns[dgv_List.Columns.Add("siteAddress", "Site Address")];
+            col = dgv_List.Columns[dgv_List.Columns.Add("listName", "List Name")];
+            col = dgv_List.Columns[dgv_List.Columns.Add("description", "Description")];
+            col = dgv_List.Columns[dgv_List.Columns.Add("baseType", "Type")];
+            col = dgv_List.Columns[dgv_List.Columns.Add("defaultView", "Default View")];
+            col = dgv_List.Columns[dgv_List.Columns.Add(checkEdit)];
+            col = dgv_List.Columns[dgv_List.Columns.Add("fieldCount", "Field Count")]; col.ValueType = typeof(int);
+            col = dgv_List.Columns[dgv_List.Columns.Add("viewCount", "View Count")]; col.ValueType = typeof(int);
+            col = dgv_List.Columns[dgv_List.Columns.Add("itemCount", "Item Count")]; col.ValueType = typeof(int);
+            col = dgv_List.Columns[dgv_List.Columns.Add("listId", "GUID")];
+            col = dgv_List.Columns[dgv_List.Columns.Add("created", "Created")]; col.ValueType = typeof(DateTime);
+            col = dgv_List.Columns[dgv_List.Columns.Add(lnk)];
         }
     }
 }

@@ -84,7 +84,7 @@
             this.tcmd_Connect});
             this.tos_Menu.Location = new System.Drawing.Point(0, 0);
             this.tos_Menu.Name = "tos_Menu";
-            this.tos_Menu.Size = new System.Drawing.Size(540, 25);
+            this.tos_Menu.Size = new System.Drawing.Size(540, 32);
             this.tos_Menu.TabIndex = 1;
             this.tos_Menu.Text = "toolStrip1";
             // 
@@ -93,14 +93,14 @@
             this.tcmd_Credentials.Image = ((System.Drawing.Image)(resources.GetObject("tcmd_Credentials.Image")));
             this.tcmd_Credentials.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tcmd_Credentials.Name = "tcmd_Credentials";
-            this.tcmd_Credentials.Size = new System.Drawing.Size(116, 22);
+            this.tcmd_Credentials.Size = new System.Drawing.Size(116, 29);
             this.tcmd_Credentials.Text = "Enter Credentials";
             this.tcmd_Credentials.Click += new System.EventHandler(this.tcmd_Credentials_Click);
             // 
             // tprg_Site
             // 
             this.tprg_Site.Name = "tprg_Site";
-            this.tprg_Site.Size = new System.Drawing.Size(100, 22);
+            this.tprg_Site.Size = new System.Drawing.Size(100, 29);
             // 
             // tcmd_Connect
             // 
@@ -108,7 +108,7 @@
             this.tcmd_Connect.Image = ((System.Drawing.Image)(resources.GetObject("tcmd_Connect.Image")));
             this.tcmd_Connect.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tcmd_Connect.Name = "tcmd_Connect";
-            this.tcmd_Connect.Size = new System.Drawing.Size(99, 22);
+            this.tcmd_Connect.Size = new System.Drawing.Size(99, 29);
             this.tcmd_Connect.Text = "Disconnected";
             this.tcmd_Connect.Click += new System.EventHandler(this.tcmd_Connect_Click);
             // 
@@ -295,6 +295,7 @@
             this.Controls.Add(this.spc_Site);
             this.Controls.Add(this.cmd_Close);
             this.Controls.Add(this.tos_Menu);
+            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Name = "frm_Site";
             this.Text = "SharePoint Sites";
             this.Load += new System.EventHandler(this.frm_Site_Load);

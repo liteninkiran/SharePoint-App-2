@@ -15,6 +15,10 @@ namespace SharePoint_App_2
 
         private void frm_Credentials_Load(object sender, EventArgs e)
         {
+            txt_Site_URL.Text = "https://sharepoint.com";
+            txt_Username.Text = "";
+            txt_Password.Text = "";
+
             this.Width = 500;
         }
 
